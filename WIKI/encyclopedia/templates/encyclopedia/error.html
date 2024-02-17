@@ -1,0 +1,15 @@
+{% extends 'encyclopedia/layout.html' %}
+
+{% block title %}
+    Error
+{% endblock %}
+
+{% block body %}
+
+    {% if message %}
+        <h1>There is not results with the title <span style="color:red">{{ message }}</span></h1>
+    {% elif exists %}
+        <h1>There is an entry with the title <span style="color:red">{{ exists }}</span></h1>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "auctions/layout.html" %}
+
+{% load static %}
+
+{% block title %} {{obj.name}} {% endblock %}
+
+{% block body %}
+
+    {% if 1 == obj.status %}
+        <div class="row">
+            <div class="col-7"><strong>Name:</strong> {{obj.name}}  <strong>Category:</strong> {{obj.category}}</div>
+            <spacer type="vertical" height="100"><hr/></spacer>
+            
+            <div class="col-2">Description<br>{{ obj.description }}<br><i>Price:</i> ${{ obj.price }}<br><i>Bid:</i> ${{ bid }}</div>
+            
+            <div style="max-width:350px;">Photo<br>
+                {% if '' == obj.image %}
+                    <img src="photos/question.svg" height="200">
+                {% else %}
+                    <img src="{{ obj.image }}" height="200">
+                {% endif %}
+            </div>
+
+            <div class="col-3">
+                <ul>
+                    <lh>Comments</lh>
+                    {% for c in com %}
+                        <li>{{ c }}</li>
+                    {% endfor %}
+                </ul>
+                <form method="GET" action="{% url 'comment_auction' obj.id %}" class="form-data" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button name="cg" type="submit">Comment</button>
+                </form>
+            </div>
+
+            <spacer type="vertical" height="100"><hr/></spacer>
+            <div class="col-3">
+            {% if request.user.is_authenticated %}
+                <form method="POST" action="{% url 'watch_auction' obj.id %}" class="form-inline">
+                    {% csrf_token %}
+                    {% if request.user in obj.watchers.all %}
+                        <button type="submit" class="btn btn-secondary btn-lg">Stop watching</button>
+                    {% else %}
+                        <button name="w" type="submit" class="btn btn-lg btn-primary">Watch</button>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="col-2">
+                <form method="GET" action="{% url 'bid_auction' obj.id %}" class="form-data" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button name="b" type="submit" class="btn btn-lg btn-primary">Make a bid</button>
+                </form>
+            </div>
+            
+                {% if request.user == obj.seller %}
+                    <div class="col-2">
+                        <form method="POST" action="{% url 'close_auction' obj.id %}" class="form-data" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <button name="c" type="submit" class="btn btn-lg btn-primary">Close auction</button>
+                        </form>
+                    </div>
+                {% endif %}
+                
+            {% endif %}
+
+        </div>
+
+    {% else %}
+        <div class="row">
+            <div class="col-7"><strong>Name:</strong> {{obj.name}}  <strong>Category:</strong> {{obj.category}}</div>
+
+            <spacer type="vertical" height="100"><hr/></spacer>
+
+            <div class="col-2">Description:<br>{{ obj.description }}<br><i>Initial price:</i> ${{ obj.price }}<br><i>Final bid:</i> ${{ bid }} <br><i>Winner:</i> {{winner}}</div>
+            <div style="max-width:350px;">Photo<br>
+                {% if '' == obj.image %}
+                    <img src="photos/question.svg" height="200">
+                {% else %}
+                    <img src="{{ obj.image }}" height="200">
+                {% endif %}
+            </div>
+
+            <div class="col-3">
+                <ul>
+                    <lh>Comments</lh>
+                    {% for c in com %}
+                        <li>{{ c }}</li>
+                    {% endfor %}
+                </ul>
+                    <form method="GET" action="{% url 'comment_auction' obj.id %}" class="form-data" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <button name="cg" type="submit">Comment</button>
+                    </form>
+            </div>
+
+            {% if request.user == winner %}
+                <div class="col-1"><strong>You're the Winner!</strong></div>
+            {% endif %}
+
+            <spacer type="vertical" height="100"><hr/></spacer>
+
+        </div>
+
+    {% endif %}
+
+    {% block comment %}
+    {% endblock %}
+    
+{% endblock %}

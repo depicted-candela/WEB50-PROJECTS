@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block body %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="row">#</th>
+                <th scope="col">Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in cats %}
+                <tr>
+                    <th scope="row">{{ c.id }}</th>
+                    <td><a href="{% url 'category_l' c.id %}">{{ c.title }}</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% block cat %}
+    {% endblock %}
+
+{% endblock %}

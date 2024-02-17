@@ -1,0 +1,273 @@
+{% extends "layout.html" %}
+
+<title>{% block title %}Posts{% endblock %}</title>
+
+{% block body %}
+
+    {% if user.is_authenticated and edit == 0 %}
+
+        <div class="form container-fluid col-12 col-md-8">
+            <a class="nav-link" href="new_post">
+                <div class="form-group" id="to_start_tweeting">
+                    <form>
+                        <textarea class="form-control" id="text_template" placeholder="Something in your mind?" rows="4"></textarea>
+                    </form>
+                </div>
+            </a>
+
+            {% block create %}
+            {% endblock %}
+            
+        </div>
+
+    {% endif %}
+
+    <div id="posts" class="row">
+    </div>
+
+    <div class="pagination d-flex justify-content-center">
+        <span class="step-links" id="span_pages">
+        </span>
+    </div>
+
+    <script>
+
+        var context = {
+            page: '{{ page }}',
+            userid: '{{ userid }}'
+        };
+
+        
+        //// Rendering all posts
+
+        // XMLHttpRequest it's a class to communicate between views and html
+        // To select a tag
+
+        const posts = document.getElementById("posts");
+
+        const xhr = new XMLHttpRequest();
+        const method = 'GET';
+        const url = '/following_posts/' + context.userid + '/' + context.page;
+        const responseType = "json";
+
+        xhr.responseType = responseType;
+        xhr.open(method, url);
+        xhr.onload = () => {
+            
+            var serverResponse = xhr.response;
+            var postsListed = serverResponse.response;
+            var finalPost = "<div>";
+            for (i=0; i < postsListed.length; i++) {
+                finalPost += tweet(postsListed[i], xhr.response.username);
+            }
+            finalPost += "</div>";
+            posts.innerHTML = finalPost;
+
+            // Conditionals to navigate througout the posts
+            var info = serverResponse.paging;
+
+            if (info.has_next && info.has_previous) {
+
+                var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                var previousbutton = "<a class='next'>&laquo Previous;</a>";
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = previousbutton + nextbutton;
+
+            } else if (info.has_next && !(info.has_previous)) {
+
+                var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = nextbutton;
+
+            } else if (!(info.has_next) && info.has_previous) {
+
+                var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = previousbutton;
+
+            }
+        }
+        xhr.send();
+
+
+        // To go to the next page
+        function next() {
+            
+            var pagenumber = parseInt(context.page) + 1;
+            context.page = pagenumber.toString();
+            const xhr_nextpage = new XMLHttpRequest();
+            const method = 'GET';
+            const url = '/posts/' + context.page;
+            const responseType = "json";
+
+            xhr_nextpage.responseType = responseType;
+            xhr_nextpage.open(method, url);
+            
+            xhr_nextpage.onload = () => {
+                var serverResponse =  xhr_nextpage.response;
+                var postsListed = serverResponse.response;
+                var finalPost = "<div>";
+                for (i=0; i < postsListed.length; i++) {
+                    finalPost += tweet(postsListed[i]);
+                }
+                finalPost += "</div>";
+                posts.innerHTML = finalPost;
+
+                // Conditionals to navigate througout the posts
+                var info = serverResponse.paging;
+
+                if (info.has_next && info.has_previous) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton + nextbutton;
+
+                } else if (info.has_next && !(info.has_previous)) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = nextbutton;
+
+                } else if (!(info.has_next) && info.has_previous) {
+
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton;
+
+                }
+
+            }
+            xhr_nextpage.send();
+
+        }
+
+
+        // To go to the previous page
+
+        function previous() {
+            
+            var pagenumber = parseInt(context.page) - 1;
+            context.page = pagenumber.toString();
+            const xhr_previouspage = new XMLHttpRequest();
+            const method = 'GET';
+            const url = '/posts/' + context.page;
+            const responseType = "json";
+
+            xhr_previouspage.responseType = responseType;
+            xhr_previouspage.open(method, url);
+
+            xhr_previouspage.onload = () => {
+                var serverResponse =  xhr_previouspage.response;
+                var postsListed = serverResponse.response;
+                var finalPost = "<div>";
+                for (i=0; i < postsListed.length; i++) {
+                    finalPost += tweet(postsListed[i]);
+                }
+                finalPost += "</div>";
+                posts.innerHTML = finalPost;
+
+                // Conditionals to navigate througout the posts
+
+                var info = serverResponse.paging
+
+                if (info.has_next && info.has_previous) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton + nextbutton;
+
+                } else if (info.has_next && !(info.has_previous)) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = nextbutton;
+
+                } else if (!(info.has_next) && info.has_previous) {
+
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton;
+
+                }
+
+            }
+            xhr_previouspage.send();
+
+        }
+        
+
+        // Dynamic HTML to create each tweet
+        function tweet(tweet, user_online) {
+
+            if (user_online == tweet.user.split('"').join('')) {
+                var item = "<div class='tweet-container'><div class='col-12 col-md-8 mx-auto mb-5 border py-4 tweet' id='tweet-" + tweet.id + "'>";
+                item = item + "<p class='overflow-visible' style='hyphens: auto;'>" + tweet.text + "</p>" + button_like(tweet.id, tweet.likes);
+                item = item + "<divr>" + tweet.user.split('"').join('') + button_edit(tweet.id) + "<br>" + tweet.date + "</divr>" + "</div>" + "</div>";
+            } else {
+                var item = "<div class='tweet-container'><div class='col-12 col-md-8 mx-auto mb-5 border py-4 tweet' id='tweet-" + tweet.id;
+                item = item  + "'><p class='overflow-visible' style='hyphens: auto;'>" + tweet.text + "</p>" + button_like(tweet.id, tweet.likes);
+                item = item + "<divr>" + tweet.user.split('"').join('') + "" + "<br>" + tweet.date + "</divr>" + "</div>" + "</div>";
+            }
+            var pagenumber = parseInt(context.page) - 1;
+            
+            return item;
+        }
+
+        
+        // Button for each tweet
+        function button_like(id, number) {
+            return "<button type='button' class='btn btn-info' onclick=touch_like(" + id + ")> Likes: " + number + "</button>";
+        }
+
+        
+        //// Editing a post
+        
+        // Button for each tweet
+        function button_edit(id) {
+
+            return "<a role='button' class='btn btn-link' href='update_post/"+ id +"'>Edit</a>";
+            
+        }
+
+        // To like or dislike
+        function touch_like(id) {
+            
+            data = JSON.stringify({postid: id, page: context.page});
+
+            const xhr = new XMLHttpRequest();
+            const method = 'PUT';
+            const url = '/update_like';
+            xhr.open(method, url);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.send(data);
+            window.setTimeout(function () {
+                location.href = "";
+            }, 500);
+
+        }
+
+        // To make the csrftoken
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
+        }
+
+    </script>
+
+{% endblock %}

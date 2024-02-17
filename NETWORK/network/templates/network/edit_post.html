@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block edit %}
+
+    <div class="row mb-3">
+        <div class="col-md-8 mx-auto col-12">
+            <form method='POST' id='put_action'>
+                {% csrf_token %}
+                <input type="hidden" name="_method" value="PUT">
+                {{ form.as_p }}
+                <div class="text-right">
+                    <button type="submit" class="btn btn-info btn-float-right" id="put_button">Edit tweet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+
+        //// Rendering something to post
+
+        // To make the csrftoken
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            console.log('cookie', cookieValue, document.cookie);
+            return cookieValue;
+        }
+
+        function createCookie() {
+            const randomString = Math.random().toString(60).substr(2, 50);
+            return randomString;
+        }
+
+        // To update a post using the PUT method
+        document.getElementById("put_button").addEventListener("click", function() {
+
+            var myForm = document.getElementById('put_action');
+
+            var text_area = document.getElementById('id_text').innerHTML;
+            var url_image = document.getElementById('id_image').innerHTML;
+
+            console.log(text_area);
+            console.log(url_image);
+            
+            // Obj for JSON
+            var myObj = {
+                id: {{postid}},
+                text: text_area,
+                image: url_image
+            };
+
+            console.log('COOKIE', createCookie().length);
+
+            event.preventDefault();
+
+            const action = '/update_post/';
+            const post_id = '{{postid}}'
+
+            fetch(`/update_post/${postid}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify(myObj),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        });
+
+
+    </script>
+{% endblock %}

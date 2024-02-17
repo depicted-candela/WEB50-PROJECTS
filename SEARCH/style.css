@@ -1,0 +1,28 @@
+.container, #desc, #icon_ad, .text-center, #adserch {
+  font-family: 'Open Sans', sans-serif; }
+
+.container {
+  font-size: small;
+  margin-top: 20px; }
+
+#desc {
+  margin-bottom: 20px;
+  font-size: medium; }
+
+#icon_ad {
+  margin-top: 20px;
+  margin-left: 15px; }
+
+.text-center {
+  margin-top: 100px; }
+
+#adserch {
+  background-color: deepskyblue;
+  color: white;
+  margin-left: 15%;
+  margin-top: -15%; }
+
+p {
+  font-family: 'Roboto Mono', monospace; }
+
+/*# sourceMappingURL=style.css.map */

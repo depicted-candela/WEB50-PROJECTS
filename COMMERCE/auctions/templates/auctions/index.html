@@ -1,0 +1,42 @@
+{% extends "auctions/layout.html" %}
+
+{% load static %}
+
+{% block body %}
+    <h2>Active Listings</h2>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="row">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Price</th>
+                <th scope="col">Description</th>
+                <th scope="col">Image</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in obj %}
+                <!-- {% if 1 == i.status %} -->
+                    <tr>
+                        <th scope="row">{{ i.id }}</th>
+                        <td> <a href="{% url 'auction' i.id %}">{{ i.name }}</a> </td>
+                        <td> ${{ i.price }} </td>
+                        <td> {{ i.description }} </td>
+                        {% if '' == i.image %}
+                            <td> <img src="photos/question.svg" height="100"> </td>
+                        {% else %}
+                            <td> <img src="{{ i.image }}" height="100"> </td>
+                        {% endif %}
+                        {% if 1 == i.status %}
+                            <td> {{ i.category }} </td>
+                        {% else %}
+                            <td>Inactive</td>
+                        {% endif %}
+                    </tr>
+                <!-- {% endif %} -->
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

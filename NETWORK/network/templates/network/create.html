@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block create %}
+
+    <div id="new_post">
+        <form method='POST' class="col-md-8 mx-auto col-12">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="text-right">
+                <button type="submit" class="btn btn-info btn-float-right">Tweet</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        //// Rendering something to post
+
+        const new_post = document.getElementById("to_start_tweeting")
+        new_post.innerHTML = ""
+
+    </script>
+{% endblock %}
+

@@ -1,0 +1,38 @@
+%body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.container {
+    @extend %body;
+    font-size: small;
+    margin-top: 20px;
+}
+
+#desc {
+    @extend %body;
+    margin-bottom: 20px;
+    font-size: medium;
+}
+
+#icon_ad {
+    @extend %body;
+    margin-top: 20px;
+    margin-left: 15px;
+}
+
+.text-center {
+    @extend %body;
+    margin-top: 100px;
+}
+
+#adserch {
+    @extend %body;
+    background-color: deepskyblue;
+    color: white;
+    margin-left: 15%;
+    margin-top: -15%;
+}
+
+p{
+    font-family: 'Roboto Mono', monospace;
+}

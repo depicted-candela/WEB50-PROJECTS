@@ -1,0 +1,370 @@
+{% extends "layout.html" %}
+
+<title>{% block title %}Profile of {{ username }}{% endblock %}</title>
+
+{% block body %}
+
+    <div class="container-fluid col-12 col-md-8">
+        <nav class="navbar navbar-light bg-light">
+            <form class="container-fluid justify-content-start">
+                <div class="row">
+
+                    <div class="col">
+                        <h1> {{ username }} </h1>
+                    </div>
+
+                    {% if user.is_authenticated and exists == 1 %}
+
+                        <div class="col-sm">
+                            <div id="followers"><strong>Followers: </strong><br>{{ followers }}</div>
+                        </div>
+
+                        <div class="col-sm">
+                            <div id="following"><strong>Following: </strong><br>{{ following }}</div>
+                        </div>
+
+                        {% if user.username != username %}
+
+                            <div class="col-sm">
+                                <form class="form" method="GET" action="/follow_unfollow" id="b_follow_unfollow">
+
+                                    {% csrf_token %}
+                                    <input type="hidden" value="{{ userid }}" name="send_userid_to_django" />
+                                    <button class="btn btn-outline-success me-2" type="button" id="follow_button" onclick="f_u({{ userid }})"></button>
+                                    
+                                </form>
+                            </div>
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <div class="col-sm">
+                            <div id="message">This account does not exists</div>
+                        </div>
+
+                    {% endif %}
+                </div>
+            </form>
+        </nav>
+    </div>
+
+    {% if user.is_authenticated and exists == 1 and user.username == username %}
+
+        <div class="row mb-3">
+            <div class="col-md-8 mx-auto col-12">
+                <form class="form" method="GET" action="/new_own_post">
+                    {% csrf_token %}
+                    <div class="textarea-container">
+                        <input type="hidden" value="{{ username }}" name="send_user_to_django" />
+                        <textarea class="form-group" name="content" placeholder="Something in your mind?">{{ new_own_post }}</textarea>
+                        <button class="btn btn-link btn-xl"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {% endif %}
+    
+    <div id="profile_posts" class="row">
+    </div>
+
+    <div class="pagination d-flex justify-content-center">
+        <span class="step-links" id="span_pages">
+        </span>
+    </div>
+
+    <script type="text/javascript">
+
+        var context = {
+            username: '{{ username }}',
+            userid: '{{ userid }}',
+            visitor: '{{ user.username }}',
+            visitorid: '{{ user.id }}',
+            exists: '{{ exists }}',
+            page: '{{ page }}'
+        };
+
+        responseType = 'json';
+
+
+        // Creating the form that will be a button
+        
+        if (context.username != context.visitor & context.exists) {
+
+            window.onload = function() {
+
+                const follow_button = document.getElementById("follow_button");
+
+                const xhr_unfollow_button = new XMLHttpRequest();
+                xhr_unfollow_button.responseType = responseType;
+                xhr_unfollow_button.open('GET', '/follow_unfollow_button');
+                xhr_unfollow_button.onload = () => {
+
+                    var f_u_b_fi = xhr_unfollow_button.response.following;
+
+                    var b = 0;
+
+                    for (var i = 0; i < f_u_b_fi.length; i++) {
+                        
+                        if (f_u_b_fi[i] == context.userid) {
+                            var b = 1;
+                            break;
+                        }
+
+                    }
+                    
+                    if (b == 0) {
+                        follow_button.innerHTML = 'Follow';
+                    } else {
+                        follow_button.innerHTML = 'Unfollow';
+                    }
+                    
+                }
+                xhr_unfollow_button.send();
+
+            }
+
+        }
+
+
+        //// Rendering profile posts
+
+        console.log(context.userid + '/posts/' + context.page);
+
+        const xhr_own_posts = new XMLHttpRequest();
+        xhr_own_posts.responseType = responseType;
+        xhr_own_posts.open('GET', '/' + context.userid + '/posts/' + context.page);
+        xhr_own_posts.onload = () => {
+
+            var postsListed = xhr_own_posts.response.response;
+
+            var finalPost = "<div>"
+            for (i=0; i<postsListed.length; i++) {
+                finalPost += tweet(postsListed[i]);
+            }
+            finalPost += "</div>";
+            profile_posts.innerHTML = finalPost;
+
+            // Conditionals to navigate throughout the posts
+            var info =  xhr_own_posts.response.paging;
+
+            console.log(info);
+
+            if (info.has_next && info.has_previous) {
+                
+                var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                var previousbutton = "<a class='next'>&laquo Previous;</a>";
+
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = previousbutton + nextbutton;
+
+            } else if (info.has_next && !(info.has_previous)) {
+                
+                var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = nextbutton;
+
+            } else if (!(info.has_next) && info.has_previous) {
+
+                var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                const span_pages = document.getElementById("span_pages");
+                span_pages.innerHTML = previousbutton;
+
+            }
+
+        }
+        xhr_own_posts.send();
+
+
+        // To go to the next page
+        function next() {
+            
+            var pagenumber = parseInt(context.page) + 1;
+            context.page = pagenumber.toString();
+            const xhr_nextpage = new XMLHttpRequest();
+            const method = 'GET';
+            const url = '/'+ context.userid +'/posts/' + context.page;
+            const responseType = "json";
+
+            xhr_nextpage.responseType = responseType;
+            xhr_nextpage.open(method, url);
+            
+            xhr_nextpage.onload = () => {
+                var serverResponse =  xhr_nextpage.response;
+                var postsListed = serverResponse.response;
+                var finalPost = "<div>";
+                for (i=0; i < postsListed.length; i++) {
+                    finalPost += tweet(postsListed[i]);
+                }
+                finalPost += "</div>";
+                profile_posts.innerHTML = finalPost;
+
+                // Conditionals to navigate througout the posts
+                var info = serverResponse.paging;
+
+                if (info.has_next && info.has_previous) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton + nextbutton;
+
+                } else if (info.has_next && !(info.has_previous)) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = nextbutton;
+
+                } else if (!(info.has_next) && info.has_previous) {
+
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton;
+
+                }
+
+            }
+            xhr_nextpage.send();
+
+        }
+
+
+        // To go to the previous page
+
+        function previous() {
+            
+            var pagenumber = parseInt(context.page) - 1;
+            context.page = pagenumber.toString();
+            const xhr_previouspage = new XMLHttpRequest();
+            const method = 'GET';
+            const url = '/'+ context.userid +'/posts/' + context.page;
+            const responseType = "json";
+
+            xhr_previouspage.responseType = responseType;
+            xhr_previouspage.open(method, url);
+
+            xhr_previouspage.onload = () => {
+                var serverResponse =  xhr_previouspage.response;
+                var postsListed = serverResponse.response;
+                var finalPost = "<div>";
+                for (i=0; i < postsListed.length; i++) {
+                    finalPost += tweet(postsListed[i]);
+                }
+                finalPost += "</div>";
+                profile_posts.innerHTML = finalPost;
+
+                // Conditionals to navigate througout the posts
+
+                var info = serverResponse.paging
+
+                if (info.has_next && info.has_previous) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton + nextbutton;
+
+                } else if (info.has_next && !(info.has_previous)) {
+
+                    var nextbutton = "<a onclick=next() class='next'>Next &raquo;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = nextbutton;
+
+                } else if (!(info.has_next) && info.has_previous) {
+
+                    var previousbutton = "<a onclick=previous() class='next'>&laquo Previous;</a>";
+                    const span_pages = document.getElementById("span_pages");
+                    span_pages.innerHTML = previousbutton;
+
+                }
+
+            }
+            xhr_previouspage.send();
+
+        }
+
+
+        //// To try follow or unfollow
+
+        function f_u(userid) {
+
+            data_f = JSON.stringify({following: userid});
+            console.log(data_f);
+
+            const xhr_f_u = new XMLHttpRequest();
+            xhr_f_u.responseType = responseType;
+
+            xhr_f_u.responseType = responseType;
+            xhr_f_u.open('PUT', '/follow_unfollow');
+            xhr_f_u.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr_f_u.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr_f_u.send(data_f);
+
+            window.setTimeout(function () {
+                location.href = "";
+            }, 500);
+            
+        }
+
+
+        //// Rendering all posts
+
+        // To select a tag
+        const profile_posts = document.getElementById("profile_posts");
+
+
+        // Dynamic HTML to create each tweet
+        function tweet(tweet) {
+            var item = "<div class='tweet-container'><div class='col-12 col-md-8 mx-auto mb-4 border py-3 tweet' id='tweet-" + tweet.id + "'><p class='overflow-visible' style='hyphens: auto;'>" + tweet.text + "</p>" + button_like(tweet.id, tweet.likes) + "<divr>" + tweet.user.split('"').join('') + "</divr>" + "</div>" + "</div>"
+            return item;
+        }
+
+
+        // Button for each tweet
+        function button_like(id, number) {
+            return "<button type='button' class='btn btn-info' onclick=touch_like(" + id + ")> Likes: " + number + "</button>";
+        }
+
+
+        // To like or dislike
+        function touch_like(id) {
+            
+            data = JSON.stringify({postid: id});
+
+            const xhr = new XMLHttpRequest();
+            const method = 'PUT';
+            const url = '/update_like';
+
+            xhr.responseType = responseType;
+            xhr.open(method, url);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.send(data);
+            window.setTimeout(function () {
+                location.href = "";
+            }, 500);
+
+        }
+
+
+        // To make the csrftoken
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+    </script>
+
+{% endblock %}

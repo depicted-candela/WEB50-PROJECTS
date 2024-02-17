@@ -1,0 +1,23 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <h2>{{ title }}</h2>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="row">#</th>
+                <th scope="col">Auction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in cats %}
+                <tr>
+                    <th scope="row">{{ c.id }}</th>
+                    <td><a href="{% url 'auction' c.id %}">{{ c.name }}</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

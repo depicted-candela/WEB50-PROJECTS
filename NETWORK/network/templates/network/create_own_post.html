@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+<title>{% block title %}Profile of {{ username }}{% endblock %}</title>
+
+{% block body %}
+
+    <div class="container-fluid col-12 col-md-8">
+        <nav class="navbar navbar-light bg-light">
+            <form class="container-fluid justify-content-start">
+                <div class="row">
+
+                    <div class="col">
+                        <h1> {{ username }} </h1>
+                    </div>
+
+                    {% if exists == 1 %}
+
+                        <div class="col-sm">
+                            <div id="followers"><strong>Followers: </strong>{{ followers }}</div>
+                        </div>
+                        <div class="col-sm">
+                            <div id="following"><strong>Followers: </strong>{{ following }}</div>
+                        </div>
+
+                    {% else %}
+
+                        <div class="col-sm">
+                            <div id="message">This account does not exists</div>
+                        </div>
+
+                    {% endif %}
+                </div>
+            </form>
+        </nav>
+    </div>
+
+    {% if user.is_authenticated and exists == 1 and user.username == username and new_post == 1 %}
+
+        <div class="row mb-3">
+            <div class="col-md-8 mx-auto col-12">
+                <form class="form" action="/new_own_post" method='POST'>
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-info btn-float-right">Tweet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {% endif %}
+    
+    <div id="profile_posts" class="row">
+    </div>
+
+    <script type="text/javascript">
+
+        var context = {
+            username: '{{ username }}',
+            userid: '{{ userid }}',
+            visitor: '{{ user.username }}',
+            visitorid: '{{ user.id }}',
+            exists: '{{ exists }}'
+        };
+
+        responseType = 'json';
+
+
+        //// Rendering all posts
+
+        // To select a tag
+        const profile_posts = document.getElementById("profile_posts");
+
+        // Dynamic HTML to create each tweet
+        function tweet(tweet) {
+            var item = "<div class='tweet-container'><div class='col-12 col-md-8 mx-auto mb-4 border py-3 tweet' id='tweet-" + tweet.id + "'><p class='overflow-visible' style='hyphens: auto;'>" + tweet.text + "</p>" + button_like(tweet.id, tweet.likes) + "<divr>" + tweet.user.split('"').join('') + "</divr>" + "</div>" + "</div>"
+            return item;
+        }
+
+        // Button for each tweet
+        function button_like(id, number) {
+            return "<button type='button' class='btn btn-info' onclick=touch_like(" + id + ")> Likes: " + number + "</button>";
+        }
+
+        // To like or dislike
+        function touch_like(id) {
+            
+            data = JSON.stringify({postid: id});
+
+            const xhr = new XMLHttpRequest();
+            const method = 'PUT';
+            const url = '/update_like';
+
+            xhr.responseType = responseType;
+            xhr.open(method, url);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.send(data);
+            window.setTimeout(function () {
+                location.href = "";
+            }, 500);
+        }
+
+        // To make the csrftoken
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        
+        //// Rendering profile posts
+
+        const xhr_own_posts = new XMLHttpRequest();
+        xhr_own_posts.responseType = responseType;
+        xhr_own_posts.open('GET', 'posts/' + context.userid);
+        xhr_own_posts.onload = () => {
+
+            var postsListed = xhr_own_posts.response.response;
+
+            var finalPost = "<div>"
+            for (i=0; i<postsListed.length; i++) {
+                finalPost += tweet(postsListed[i]);
+            }
+            finalPost += "</div>";
+            profile_posts.innerHTML = finalPost;
+        }
+        xhr_own_posts.send();
+    
+    </script>
+
+{% endblock %}
