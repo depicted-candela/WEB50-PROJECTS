@@ -10,7 +10,7 @@ A mail system written for the web. Django was the framework connected to a sqlit
 ## NETWORK
 A simple copy of the Twitter system for the web. Also DJango was the engine and connected to bootstrap styles and a sqlite database performs the basic funcionalities of Twitter.
 
-#### SEARCH
+## SEARCH
 Trying to imitate the basic, for images and advanced the Google search engine was used HTML, and CSS.
 
 ## WIKI
